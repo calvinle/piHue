@@ -1,25 +1,24 @@
 from phue import Bridge #Library for Phillips Hue
-from time import sleep
+from time import sleep #Time library
 import RPi.GPIO as GPIO
 import time
 import random
 
-mic = 11
-light = 7
-#GPIO.setup(light, GPIO.IN)
-#GPIO.setmode(GPIO.BCM)
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(mic, GPIO.IN)
-GPIO.setwarnings(False)
+mic = 11    #Mic connected to physical pin 11
+light = 7   #Light sensor connected to physical pin 7
+GPIO.setmode(GPIO.BOARD)    #Mode of pin layout
+GPIO.setup(mic, GPIO.IN)    #Set up pin
+GPIO.setwarnings(False)     #Warnings are bullshit
 
-b = Bridge('192.168.0.18')
-pi = b[1] #The third light bulb connectd to Bridge. 0 throws error
+b = Bridge('192.168.0.18')  #My bridge is at this IP. Must press button
+pi = b[1]   #The first light bulb connectd to Bridge. 0 throws error
 pi2 = b[2]
 pi3 = b[3]
-pi.xy = [0.3146, 0.3303]
+pi.xy = [0.3146, 0.3303]    #Initial RSV values
 pi2.xy = [0.3146, 0.3303]
 pi3.xy = [0.3146, 0.3303]
-def rc_time (light):
+
+def rc_time (light):        #Light function
     count = 0
     
     GPIO.setup(light, GPIO.OUT)
@@ -36,40 +35,36 @@ def rc_time (light):
 
 def callback(mic):
     print ("Sound Detected!")
-    #if GPIO.input(light) == 0 and pi.on == False: #if no light detected and lightbulb is off
-      #  pi.on = True #turn on lightbulb
-    
-    #if GPIO.input(light) == 1 and pi.on == True:  #if light detected and lightbulb is on
-      #  pi.on = False #turn off lightbulb
-    if pi.on == True:
-        pi.xy = [random.random(), random.random()]
+
+    if pi.on == True:           #Lightbulb has to actually be on
+        pi.xy = [random.random(), random.random()]  #Change to random color
     if pi2.on == True:
         pi2.xy = [random.random(), random.random()]
     if pi3.on == True:
         pi3.xy = [random.random(), random.random()]
 
     time.sleep(3)
-    pi.xy = [0.3146, 0.3303]
+    pi.xy = [0.3146, 0.3303]    #Change back to initial value
     pi2.xy = [0.3146, 0.3303]
     pi3.xy = [0.3146, 0.3303]
     
-GPIO.add_event_detect(mic, GPIO.BOTH, bouncetime=300)
+GPIO.add_event_detect(mic, GPIO.BOTH, bouncetime=300)   #Ask me later
 GPIO.add_event_callback(mic, callback)
 
     
 try:
     while True:
-        if (rc_time(light) > 0):
-            pi.on = True
+        if (rc_time(light) > 0):    #If light function detects no light from sensor
+            pi.on = True            #Turn on ALL lightbulbs
             pi2.on = True
             pi3.on = True
         
-        if (rc_time(light) == 0):
-            pi.on = False
+        if (rc_time(light) == 0):   #Else if light function detects light
+            pi.on = False           #Turn off ALL lightbulbs
             pi2.on = False
             pi3.on = False
         
-except KeyboardInterrupt:
+except KeyboardInterrupt:           #If keyboard inputs anything, stop program
     pass
 finally:
-    GPIO.cleanup()
+    GPIO.cleanup()                  #idk??
